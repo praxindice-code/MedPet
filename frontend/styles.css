@@ -1,0 +1,463 @@
+/* =====================
+   MEDPET — STYLESHEET
+   ===================== */
+ 
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+ 
+/* ── CSS VARIABLES ── */
+:root {
+  --bg: #f5f5f3;
+  --sidebar-bg: #efefed;
+  --surface: #ffffff;
+  --border: #e0e0dd;
+  --text: #1a1a1a;
+  --text-muted: #888;
+  --accent: #e07b1a;
+  --accent-light: #fff4e6;
+  --tag-bg: #ffffff;
+  --tag-border: #ddd;
+  --icon-color: #555;
+  --input-bg: #ffffff;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+ 
+body.dark {
+  --bg: #111110;
+  --sidebar-bg: #1a1a18;
+  --surface: #222220;
+  --border: #2e2e2c;
+  --text: #f0f0ee;
+  --text-muted: #666;
+  --accent: #e07b1a;
+  --accent-light: #2a1f0e;
+  --tag-bg: #2a2a28;
+  --tag-border: #3a3a38;
+  --icon-color: #aaa;
+  --input-bg: #2a2a28;
+}
+ 
+/* ── BASE ── */
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  transition: background 0.3s, color 0.3s;
+}
+ 
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 300px;
+  min-width: 300px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 20px;
+  overflow-y: auto;
+  transition: background 0.3s, border-color 0.3s;
+}
+ 
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+ 
+.sidebar-header h2 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+ 
+.sidebar-header .chevron {
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+ 
+.patient-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+ 
+.patient-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+ 
+.patient-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+ 
+.patient-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+ 
+.section {
+  margin-bottom: 22px;
+}
+ 
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+ 
+.section-title svg {
+  width: 13px;
+  height: 13px;
+}
+ 
+.tag {
+  background: var(--tag-bg);
+  border: 1px solid var(--tag-border);
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 7px;
+  transition: background 0.3s, border-color 0.3s;
+}
+ 
+.tag.allergy {
+  background: var(--accent-light);
+  border-color: #f0c080;
+  color: var(--accent);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+ 
+.tag.allergy::before {
+  content: "⚠";
+  font-size: 13px;
+}
+ 
+/* ── MAIN ── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+  transition: background 0.3s;
+}
+ 
+/* ── TOPBAR ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  transition: background 0.3s, border-color 0.3s;
+}
+ 
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+ 
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+ 
+.hamburger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+ 
+.hamburger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: background 0.3s;
+}
+ 
+.theme-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: white;
+  transition: opacity 0.2s;
+}
+ 
+.theme-btn:hover {
+  opacity: 0.85;
+}
+ 
+.moon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--text-muted);
+  padding: 4px;
+  transition: color 0.2s;
+}
+ 
+.moon-btn:hover {
+  color: var(--text);
+}
+ 
+/* ── CHAT WELCOME AREA ── */
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px 20px;
+  gap: 32px;
+}
+ 
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+ 
+.logo-icon {
+  width: 60px;
+  height: 60px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: var(--shadow);
+  transition: background 0.3s, border-color 0.3s;
+}
+ 
+.logo-text {
+  font-family: 'DM Serif Display', serif;
+  font-size: 42px;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+ 
+/* ── INPUT ── */
+.input-wrapper {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+ 
+.input-box {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow);
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+ 
+.input-box:focus-within {
+  border-color: #ccc;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+ 
+.input-box .plus {
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+ 
+.input-box input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: var(--text);
+}
+ 
+.input-box input::placeholder {
+  color: var(--text-muted);
+}
+ 
+.input-box .mic {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 18px;
+  flex-shrink: 0;
+  padding: 2px;
+  transition: color 0.2s;
+}
+ 
+.input-box .mic:hover {
+  color: var(--text);
+}
+ 
+/* ── QUICK ACTION CHIPS ── */
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+ 
+.chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+ 
+.chip:hover {
+  background: var(--bg);
+  border-color: #bbb;
+  transform: translateY(-1px);
+}
+ 
+.chip span {
+  font-size: 14px;
+}
+ 
+/* ── HELP BUTTON ── */
+.help-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  background: #222;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+ 
+body.dark .help-btn {
+  background: #444;
+}
+ 
+/* ── CHAT MESSAGES ── */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 760px;
+  align-self: center;
+}
+ 
+.msg {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 85%;
+  animation: fadeIn 0.2s ease;
+}
+ 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+ 
+.msg.user {
+  background: var(--accent);
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+ 
+.msg.bot {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+ 
+/* ── UTILITY ── */
+.hidden {
+  display: none !important;
+}
+ 
+/* ── CHAT BAR (bottom input in chat mode) ── */
+#chatBar {
+  padding: 16px 24px;
+  max-width: 760px;
+  width: 100%;
+  align-self: center;
+}
+ 

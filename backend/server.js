@@ -1,80 +1,103 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 
-dotenv.config();
+import { intakeFlow } from "./services/intakeFlow.js";
+import { calculateTriage } from "./services/riskEngine.js";
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-// Config (from .env or defaults)
-const MODEL = process.env.OLLAMA_MODEL || "llama3";
-const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
+console.log("🩺 MedPet Chat Triage Running");
 
-// Emergency detection
-const emergencyKeywords = [
-  "chest pain",
-  "can't breathe",
-  "difficulty breathing",
-  "severe bleeding",
-  "unconscious",
-  "stroke",
-  "heart attack"
-];
+let sessions = {};
 
 app.post("/chat", async (req, res) => {
-  const { message } = req.body;
+  const { sessionId, message } = req.body;
 
-  // 🔴 Safety layer FIRST
-  if (emergencyKeywords.some(k => message.toLowerCase().includes(k))) {
-    return res.json({
-      reply: "⚠️ This may be an emergency. Please call 911 or go to the nearest ER immediately."
-    });
+  if (!sessions[sessionId]) {
+    sessions[sessionId] = {
+      step: 0,
+      answers: {}
+    };
   }
 
+  const session = sessions[sessionId];
+
+  if (session.step > 0) {
+    const prevKey = intakeFlow[session.step - 1].key;
+    session.answers[prevKey] = message;
+  }
+
+  // Phase 1 & 2: intake flow
+  if (session.step < intakeFlow.length) {
+    const nextQuestion = intakeFlow[session.step].question;
+    session.step++;
+    return res.json({ reply: nextQuestion, done: false });
+  }
+
+  // Phase 3: triage score + Ollama summary
+  const triageInput = {
+    ...session.answers,
+    severity: parseFloat(session.answers.severity) || 0,
+    age: parseInt(session.answers.age, 10) || 0
+  };
+  const result = calculateTriage(triageInput);
+  const answers = session.answers;
+  delete sessions[sessionId];
+
+  const prompt = `You are MedPet, a clinical triage assistant. A patient just completed a symptom intake form.
+
+Patient answers:
+${Object.entries(answers).map(([k, v]) => `  ${k}: ${v}`).join("\n")}
+
+Triage result:
+  Risk level: ${result.level}
+  Score: ${result.score}
+  Reasons: ${result.reasons?.join(", ") || "none"}
+
+Write a concise clinical summary (3-5 sentences) that:
+1. Briefly restates the key symptoms
+2. Explains the risk level and what it means for the patient
+3. Gives a clear recommended next step (e.g. go to ER, schedule urgent appointment, monitor at home)
+
+Be direct and plain-language — this is shown to the patient, not the clinician.`;
+
   try {
-    const prompt = `
-You are MedPet, a cautious medical assistant designed to help people without insurance.
-
-Rules:
-- Never diagnose conditions
-- Never prescribe medication
-- Provide general guidance only
-- Always include uncertainty
-- Recommend professional care when needed
-- Be clear, calm, and supportive
-
-User: ${message}
-Assistant:
-`;
-
-    const response = await fetch(`${OLLAMA_URL}/api/generate`, {
+    const ollamaResponse = await fetch("http://localhost:11434/api/generate", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: MODEL,
+        model: "llama3",
         prompt: prompt,
         stream: false
       })
     });
 
-    const data = await response.json();
+    const ollamaData = await ollamaResponse.json();
+    const summary = ollamaData.response;
 
-    res.json({
-      reply: data.response
+    return res.json({
+      reply: summary,
+      done: true,
+      data: result
     });
 
-  } catch (error) {
-    console.error("Ollama error:", error);
-    res.status(500).json({
-      reply: "⚠️ Error communicating with the AI. Make sure Ollama is running."
+  } catch (err) {
+    console.error("Ollama error:", err);
+    return res.json({
+      reply: `Based on your symptoms, your risk level is: ${result.level}`,
+      done: true,
+      data: result
     });
   }
 });
 
+app.get("/", (req, res) => {
+  res.send("MedPet Chat API is live 🩺");
+});
+
 app.listen(3000, () => {
-  console.log(`✅ Server running at http://localhost:3000`);
+  console.log("Server running on http://localhost:3000");
 });

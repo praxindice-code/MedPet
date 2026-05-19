@@ -1,137 +1,190 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>MedPet 🩺</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #f5f7fa;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-
-    header {
-      background: #2b7cff;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 20px;
-    }
-
-    #chat {
-      flex: 1;
-      padding: 15px;
-      overflow-y: auto;
-    }
-
-    .message {
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 10px;
-      max-width: 70%;
-    }
-
-    .user {
-      background: #2b7cff;
-      color: white;
-      margin-left: auto;
-    }
-
-    .bot {
-      background: #e5e5ea;
-      color: black;
-    }
-
-    #inputArea {
-      display: flex;
-      padding: 10px;
-      background: white;
-      border-top: 1px solid #ccc;
-    }
-
-    input {
-      flex: 1;
-      padding: 10px;
-      font-size: 16px;
-    }
-
-    button {
-      padding: 10px 20px;
-      background: #2b7cff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #1f5fd6;
-    }
-
-    .loading {
-      font-style: italic;
-      color: gray;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedPet</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
 
-<header>MedPet 🩺</header>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
 
-<div id="chat"></div>
+    <div class="sidebar-header">
+      <h2>Patient Information</h2>
+      <span class="chevron">›</span>
+    </div>
 
-<div id="inputArea">
-  <input id="input" placeholder="Describe your symptoms..." />
-  <button onclick="send()">Send</button>
-</div>
+    <div class="patient-card">
+      <div class="patient-avatar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div>
+        <div class="patient-name">Sarah Johnson</div>
+        <div class="patient-meta">Age 42 • A+</div>
+      </div>
+    </div>
 
-<script>
-const chat = document.getElementById("chat");
+    <div class="section">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Conditions
+      </div>
+      <div class="tag">Type 2 Diabetes</div>
+      <div class="tag">Hypertension</div>
+    </div>
 
-function addMessage(text, sender) {
-  const div = document.createElement("div");
-  div.className = "message " + sender;
-  div.innerText = text;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-}
+    <div class="section">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Medications
+      </div>
+      <div class="tag">Metformin 500mg</div>
+      <div class="tag">Lisinopril 10mg</div>
+      <div class="tag">Atorvastatin 20mg</div>
+    </div>
 
-async function send() {
-  const input = document.getElementById("input");
-  const message = input.value.trim();
+    <div class="section">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        Allergies
+      </div>
+      <div class="tag allergy">Penicillin</div>
+      <div class="tag allergy">Sulfa drugs</div>
+    </div>
 
-  if (!message) return;
+  </aside>
 
-  addMessage(message, "user");
-  input.value = "";
+  <!-- MAIN -->
+  <main class="main">
 
-  const loading = document.createElement("div");
-  loading.className = "message bot loading";
-  loading.innerText = "MedPet is thinking...";
-  chat.appendChild(loading);
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" onclick="toggleSidebar()">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+      <div class="topbar-right">
+        <button class="theme-btn" onclick="toggleTheme()" id="sunBtn" title="Light mode">☀️</button>
+        <button class="moon-btn" onclick="toggleTheme()" id="moonBtn" title="Dark mode">🌙</button>
+      </div>
+    </div>
 
-  try {
-    const res = await fetch("http://localhost:3000/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ message })
-    });
+    <!-- Welcome / empty state -->
+    <div class="chat-area" id="welcome">
+      <div class="logo">
+        <div class="logo-icon">🐱</div>
+        <div class="logo-text">MedPet</div>
+      </div>
 
-    const data = await res.json();
+      <div class="input-wrapper">
+        <div class="input-box">
+          <span class="plus">+</span>
+          <input
+            type="text"
+            id="chatInput"
+            placeholder="How can I help you today?"
+            onkeydown="handleKey(event)"
+          />
+          <button class="mic" title="Voice input">🎙</button>
+        </div>
 
-    loading.remove();
-    addMessage(data.reply, "bot");
+        <div class="quick-actions">
+          <button class="chip" onclick="quickAction('Medications')"><span>💊</span> Medications</button>
+          <button class="chip" onclick="quickAction('Symptoms')"><span>📈</span> Symptoms</button>
+          <button class="chip" onclick="quickAction('Conditions')"><span>🩺</span> Conditions</button>
+          <button class="chip" onclick="quickAction('Appointments')"><span>📅</span> Appointments</button>
+          <button class="chip" onclick="quickAction('Records')"><span>📋</span> Records</button>
+        </div>
+      </div>
+    </div>
 
-  } catch (err) {
-    loading.remove();
-    addMessage("⚠️ Error connecting to server.", "bot");
-  }
-}
-</script>
+    <!-- Chat messages -->
+    <div class="messages hidden" id="messages"></div>
+
+    <!-- Chat bar -->
+    <div class="input-wrapper hidden" id="chatBar">
+      <div class="input-box">
+        <span class="plus">+</span>
+        <input
+          type="text"
+          id="chatInput2"
+          placeholder="How can I help you today?"
+          onkeydown="handleKey2(event)"
+        />
+        <button class="mic" title="Voice input">🎙</button>
+      </div>
+
+      <div class="quick-actions">
+        <button class="chip" onclick="quickAction('Medications')"><span>💊</span> Medications</button>
+        <button class="chip" onclick="quickAction('Symptoms')"><span>📈</span> Symptoms</button>
+        <button class="chip" onclick="quickAction('Conditions')"><span>🩺</span> Conditions</button>
+        <button class="chip" onclick="quickAction('Appointments')"><span>📅</span> Appointments</button>
+        <button class="chip" onclick="quickAction('Records')"><span>📋</span> Records</button>
+      </div>
+    </div>
+
+  </main>
+
+  <div class="help-btn" title="Help">?</div>
+
+  <script>
+    let dark = false;
+    let chatMode = false;
+
+    function toggleTheme() {
+      dark = !dark;
+      document.body.classList.toggle('dark', dark);
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      sidebar.style.display = sidebar.style.display === 'none' ? 'flex' : 'none';
+    }
+
+    function switchToChatMode() {
+      if (!chatMode) {
+        chatMode = true;
+        document.getElementById('welcome').classList.add('hidden');
+        document.getElementById('messages').classList.remove('hidden');
+        document.getElementById('chatBar').classList.remove('hidden');
+      }
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter') {
+        const val = document.getElementById('chatInput').value.trim();
+        if (!val) return;
+        document.getElementById('chatInput2').value = val;
+        document.getElementById('chatInput').value = '';
+        send();
+      }
+    }
+
+    function handleKey2(e) {
+      if (e.key === 'Enter') send();
+    }
+
+    function quickAction(label) {
+      document.getElementById('chatInput2').value = label;
+      send();
+    }
+  </script>
+
+  <script src="app.js"></script>
 
 </body>
 </html>
