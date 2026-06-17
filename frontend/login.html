@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedPet - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page">
+    <div class="topbar-controls">
+        <button class="theme-btn" onclick="toggleTheme()" id="sunBtn" title="Light mode">☀️</button>
+        <button class="moon-btn" onclick="toggleTheme()" id="moonBtn" title="Dark mode">🌙</button>
+    </div>
+
+    <div class="auth-container">
+        <div class="auth-header">
+            <div class="logo-icon">🐱</div>
+            <div class="logo-text">MedPet</div>
+        </div>
+
+        <div class="auth-form-wrapper">
+            <!-- Login Form -->
+            <div id="loginForm">
+                <div class="form-title">Welcome Back</div>
+                <div class="form-subtitle">Sign in to your account</div>
+                <form class="auth-form" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" name="password" required>
+                    </div>
+                    <button type="submit">Sign In</button>
+                    <div id="loginError" class="error hidden"></div>
+                </form>
+                <div class="toggle-form">
+                    Don't have an account? <a onclick="toggleForms()">Create one</a>
+                </div>
+            </div>
+
+            <!-- Registration Form -->
+            <div id="registerForm" class="hidden">
+                <div class="form-title">Create Account</div>
+                <div class="form-subtitle">Get started with MedPet</div>
+                <form class="auth-form" onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="regEmail">Email</label>
+                        <input type="email" id="regEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Password</label>
+                        <input type="password" id="regPassword" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regName">Name</label>
+                        <input type="text" id="regName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regAge">Age</label>
+                        <input type="number" id="regAge" name="age" required min="1" max="150">
+                    </div>
+                    <div class="form-group">
+                        <label for="regGender">Gender</label>
+                        <select id="regGender" name="gender" required>
+                            <option value="">Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <button type="submit">Create Account</button>
+                    <div id="registerError" class="error hidden"></div>
+                    <div id="registerSuccess" class="success hidden"></div>
+                </form>
+                <div class="toggle-form">
+                    Already have an account? <a onclick="toggleForms()">Sign in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:3000";
+        let dark = false;
+
+        function toggleTheme() {
+            dark = !dark;
+            document.body.classList.toggle('dark', dark);
+            document.getElementById('sunBtn').style.display = dark ? 'none' : 'flex';
+            document.getElementById('moonBtn').style.display = dark ? 'flex' : 'none';
+        }
+
+        function toggleForms() {
+            document.getElementById("loginForm").classList.toggle("hidden");
+            document.getElementById("registerForm").classList.toggle("hidden");
+            clearErrors();
+        }
+
+        function clearErrors() {
+            document.getElementById("loginError").classList.add("hidden");
+            document.getElementById("registerError").classList.add("hidden");
+            document.getElementById("registerSuccess").classList.add("hidden");
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById("loginEmail").value;
+            const password = document.getElementById("loginPassword").value;
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Login failed");
+                }
+
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("userId", data.userId);
+                window.location.href = "index.html";
+
+            } catch (err) {
+                document.getElementById("loginError").textContent = err.message;
+                document.getElementById("loginError").classList.remove("hidden");
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            const email = document.getElementById("regEmail").value;
+            const password = document.getElementById("regPassword").value;
+            const name = document.getElementById("regName").value;
+            const age = parseInt(document.getElementById("regAge").value);
+            const gender = document.getElementById("regGender").value;
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password, name, age, gender })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Registration failed");
+                }
+
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("userId", data.userId);
+                window.location.href = "index.html";
+
+            } catch (err) {
+                document.getElementById("registerError").textContent = err.message;
+                document.getElementById("registerError").classList.remove("hidden");
+            }
+        }
+
+        if (localStorage.getItem("token")) {
+            window.location.href = "index.html";
+        }
+
+        // Initialize theme visibility
+        document.getElementById('moonBtn').style.display = 'none';
+    </script>
+</body>
+</html>

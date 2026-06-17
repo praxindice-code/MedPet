@@ -3,6 +3,8 @@ import cors from "cors";
 
 import { intakeFlow } from "./services/intakeFlow.js";
 import { calculateTriage } from "./services/riskEngine.js";
+import authRoutes, { authMiddleware } from "./routes/auth.js";
+import { initializeDB, getProfile, getMedicalHistory } from "./services/db.js";
 
 const app = express();
 
@@ -13,13 +15,30 @@ console.log("🩺 MedPet Chat Triage Running");
 
 let sessions = {};
 
-app.post("/chat", async (req, res) => {
+// Initialize database and start server
+async function start() {
+  try {
+    await initializeDB();
+  } catch (err) {
+    console.error("Failed to initialize database:", err);
+    process.exit(1);
+  }
+
+app.post("/chat", authMiddleware, async (req, res) => {
   const { sessionId, message } = req.body;
+  const userId = req.userId;
 
   if (!sessions[sessionId]) {
+    // Fetch user profile and medical history
+    const profile = await getProfile(userId);
+    const medicalHistory = await getMedicalHistory(userId);
+
     sessions[sessionId] = {
       step: 0,
-      answers: {}
+      answers: {},
+      userId,
+      userProfile: profile,
+      medicalHistory
     };
   }
 
@@ -32,22 +51,39 @@ app.post("/chat", async (req, res) => {
 
   // Phase 1 & 2: intake flow
   if (session.step < intakeFlow.length) {
-    const nextQuestion = intakeFlow[session.step].question;
+    const nextQuestion = intakeFlow[session.step];
+    const options = nextQuestion.options || [];
     session.step++;
-    return res.json({ reply: nextQuestion, done: false });
+    return res.json({ 
+      reply: nextQuestion.question, 
+      done: false,
+      options: options
+    });
   }
 
   // Phase 3: triage score + Ollama summary
   const triageInput = {
     ...session.answers,
     severity: parseFloat(session.answers.severity) || 0,
-    age: parseInt(session.answers.age, 10) || 0
+    age: parseInt(session.answers.age, 10) || session.userProfile.age,
+    gender: session.userProfile.gender,
+    medications: session.medicalHistory.medications || [],
+    allergies: session.medicalHistory.allergies || [],
+    conditions: session.medicalHistory.conditions || []
   };
   const result = calculateTriage(triageInput);
   const answers = session.answers;
   delete sessions[sessionId];
 
   const prompt = `You are MedPet, a clinical triage assistant. A patient just completed a symptom intake form.
+
+Patient Profile:
+  Name: ${session.userProfile.name}
+  Age: ${session.userProfile.age}
+  Gender: ${session.userProfile.gender}
+  Medications: ${session.medicalHistory.medications.join(", ") || "None"}
+  Allergies: ${session.medicalHistory.allergies.join(", ") || "None"}
+  Conditions: ${session.medicalHistory.conditions.join(", ") || "None"}
 
 Patient answers:
 ${Object.entries(answers).map(([k, v]) => `  ${k}: ${v}`).join("\n")}
@@ -98,6 +134,12 @@ app.get("/", (req, res) => {
   res.send("MedPet Chat API is live 🩺");
 });
 
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
-});
+// Auth routes
+app.use("/auth", authRoutes);
+
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+}
+
+// Start the application
+start();

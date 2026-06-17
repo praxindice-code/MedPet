@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedPet - My Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="profile-page">
+    <div class="topbar-controls">
+        <button class="theme-btn" onclick="toggleTheme()" id="sunBtn" title="Light mode">☀️</button>
+        <button class="moon-btn" onclick="toggleTheme()" id="moonBtn" title="Dark mode">🌙</button>
+    </div>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1>My Profile</h1>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <!-- Profile Information -->
+        <div class="profile-info">
+            <div class="section-title">Basic Information</div>
+            <div class="info-row">
+                <span class="info-label">Name:</span>
+                <span class="info-value" id="profileName">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Age:</span>
+                <span class="info-value" id="profileAge">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Gender:</span>
+                <span class="info-value" id="profileGender">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value" id="profileEmail">-</span>
+            </div>
+        </div>
+
+        <!-- Medications -->
+        <div class="medical-section">
+            <div class="section-title">Medications</div>
+            <div class="add-item-form">
+                <input 
+                    type="text" 
+                    id="medicationInput" 
+                    placeholder="Add a medication (e.g., Aspirin)" 
+                />
+                <button onclick="addMedicalItem('medications')">Add</button>
+            </div>
+            <div id="medicationsList" class="medical-list">
+                <div class="empty-message">No medications added</div>
+            </div>
+            <div id="medicationError" class="error hidden"></div>
+        </div>
+
+        <!-- Allergies -->
+        <div class="medical-section">
+            <div class="section-title">Allergies</div>
+            <div class="add-item-form">
+                <input 
+                    type="text" 
+                    id="allergyInput" 
+                    placeholder="Add an allergy (e.g., Penicillin)" 
+                />
+                <button onclick="addMedicalItem('allergies')">Add</button>
+            </div>
+            <div id="allergiesList" class="medical-list">
+                <div class="empty-message">No allergies added</div>
+            </div>
+            <div id="allergyError" class="error hidden"></div>
+        </div>
+
+        <!-- Conditions -->
+        <div class="medical-section">
+            <div class="section-title">Medical Conditions</div>
+            <div class="add-item-form">
+                <input 
+                    type="text" 
+                    id="conditionInput" 
+                    placeholder="Add a condition (e.g., Diabetes)" 
+                />
+                <button onclick="addMedicalItem('conditions')">Add</button>
+            </div>
+            <div id="conditionsList" class="medical-list">
+                <div class="empty-message">No conditions added</div>
+            </div>
+            <div id="conditionError" class="error hidden"></div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="index.html" class="profile-back-link">← Back to Triage</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:3000";
+        let profile = {};
+        let dark = false;
+
+        function toggleTheme() {
+            dark = !dark;
+            document.body.classList.toggle('dark', dark);
+            document.getElementById('sunBtn').style.display = dark ? 'none' : 'flex';
+            document.getElementById('moonBtn').style.display = dark ? 'flex' : 'none';
+        }
+
+        async function loadProfile() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/profile`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to load profile");
+                }
+
+                profile = await response.json();
+                displayProfile();
+                displayMedicalHistory();
+
+            } catch (err) {
+                console.error(err);
+                alert("Error loading profile");
+            }
+        }
+
+        function displayProfile() {
+            document.getElementById("profileName").textContent = profile.name || "-";
+            document.getElementById("profileAge").textContent = profile.age || "-";
+            document.getElementById("profileGender").textContent = profile.gender || "-";
+            document.getElementById("profileEmail").textContent = localStorage.getItem("userEmail") || "-";
+        }
+
+        function displayMedicalHistory() {
+            // Medications
+            const medsList = document.getElementById("medicationsList");
+            if (profile.medications && profile.medications.length > 0) {
+                medsList.innerHTML = profile.medications.map(med => `
+                    <div class="medical-item">
+                        <span class="medical-item-text">${med}</span>
+                        <button class="medical-item-delete" onclick="alert('Delete functionality to be implemented')">Delete</button>
+                    </div>
+                `).join("");
+            } else {
+                medsList.innerHTML = '<div class="empty-message">No medications added</div>';
+            }
+
+            // Allergies
+            const allList = document.getElementById("allergiesList");
+            if (profile.allergies && profile.allergies.length > 0) {
+                allList.innerHTML = profile.allergies.map(allergy => `
+                    <div class="medical-item">
+                        <span class="medical-item-text">${allergy}</span>
+                        <button class="medical-item-delete" onclick="alert('Delete functionality to be implemented')">Delete</button>
+                    </div>
+                `).join("");
+            } else {
+                allList.innerHTML = '<div class="empty-message">No allergies added</div>';
+            }
+
+            // Conditions
+            const condList = document.getElementById("conditionsList");
+            if (profile.conditions && profile.conditions.length > 0) {
+                condList.innerHTML = profile.conditions.map(condition => `
+                    <div class="medical-item">
+                        <span class="medical-item-text">${condition}</span>
+                        <button class="medical-item-delete" onclick="alert('Delete functionality to be implemented')">Delete</button>
+                    </div>
+                `).join("");
+            } else {
+                condList.innerHTML = '<div class="empty-message">No conditions added</div>';
+            }
+        }
+
+        async function addMedicalItem(type) {
+            const token = localStorage.getItem("token");
+            let value = "";
+
+            if (type === "medications") {
+                value = document.getElementById("medicationInput").value.trim();
+            } else if (type === "allergies") {
+                value = document.getElementById("allergyInput").value.trim();
+            } else if (type === "conditions") {
+                value = document.getElementById("conditionInput").value.trim();
+            }
+
+            if (!value) {
+                alert("Please enter a value");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/medical-history`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ type, value })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to add item");
+                }
+
+                // Clear input and reload profile
+                if (type === "medications") {
+                    document.getElementById("medicationInput").value = "";
+                } else if (type === "allergies") {
+                    document.getElementById("allergyInput").value = "";
+                } else if (type === "conditions") {
+                    document.getElementById("conditionInput").value = "";
+                }
+
+                loadProfile();
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById(`${type.slice(0, -1)}Error`).textContent = err.message;
+                document.getElementById(`${type.slice(0, -1)}Error`).classList.remove("hidden");
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userId");
+            window.location.href = "login.html";
+        }
+
+        // Load profile on page load
+        loadProfile();
+
+        // Initialize theme visibility
+        document.getElementById('moonBtn').style.display = 'none';
+    </script>
+</body>
+</html>
